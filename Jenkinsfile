@@ -1,23 +1,26 @@
-pipeline {
+pipeline { 
     agent any
- 
+
     environment {
-        APP_NAME = 'app-hello-nti' 
         REPO_URL = "https://github.com/Medomeneam74/app.nodejs-.git"
     }
 
     stages {
         stage('Getting Repo files') {
             steps {
-                git branch: "main", credentialsId: 'jenkins-token', url: "${REPO_URL}"
+                git branch: "${env.GIT_BRANCH}", credentialsId: 'github', url: "${REPO_URL}"
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
+                    
+                    def cleanBranch = env.GIT_BRANCH ? env.GIT_BRANCH.replaceAll('origin/', '').toLowerCase() : 'main'
+                    env.CLEAN_APP_NAME = "new-app-${cleanBranch}"
+                    
                     sh """
-                        docker build -t ${APP_NAME}:${BUILD_NUMBER} .
+                        docker build -t ${env.CLEAN_APP_NAME}:${env.BUILD_NUMBER} .
                     """
                 }
             }
@@ -27,15 +30,11 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-
                         sh """
                             echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
-
-                            docker tag ${APP_NAME}:${BUILD_NUMBER} ${DOCKER_USERNAME}/${APP_NAME}:${BUILD_NUMBER}
-
-                            docker push ${DOCKER_USERNAME}/${APP_NAME}:${BUILD_NUMBER}
+                            docker tag ${env.CLEAN_APP_NAME}:${env.BUILD_NUMBER} ${DOCKER_USERNAME}/${env.CLEAN_APP_NAME}:${env.BUILD_NUMBER}
+                            docker push ${DOCKER_USERNAME}/${env.CLEAN_APP_NAME}:${env.BUILD_NUMBER}
                         """
-
                     }
                 }
             }
@@ -44,9 +43,10 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
+                
                     sh """
-                        docker rm -f "${APP_NAME}"-"main"-${BUILD_NUMBER} || true
-                        docker run -p 5000:5000 --name "${APP_NAME}"-"main"-${BUILD_NUMBER} -d ${APP_NAME}:${BUILD_NUMBER}
+                        docker rm -f "${env.CLEAN_APP_NAME}-${env.BUILD_NUMBER}" || true  
+                        docker run -p 500${env.BUILD_NUMBER}:5000 --name "${env.CLEAN_APP_NAME}-${env.BUILD_NUMBER}" -d ${env.CLEAN_APP_NAME}:${env.BUILD_NUMBER}
                         docker ps
                     """
                 }
