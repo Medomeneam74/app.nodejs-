@@ -3,7 +3,7 @@ pipeline {
  
     environment {
         APP_NAME = 'app-hello-nti' 
-        REPO_URL = "https://github.com/MohamedMagdy840/jenkins-repo.git"
+        REPO_URL = "https://github.com/Medomeneam74/app.nodejs-.git"
     }
 
     stages {
