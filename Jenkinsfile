@@ -2,7 +2,7 @@ pipeline {
     agent any
  
     environment {
-        APP_NAME = 'app-hello-nti' 
+        APP_NAME = 'app-hello-nti${BUILD_NUMBER}' 
         REPO_URL = "https://github.com/Medomeneam74/app.nodejs-.git"
     }
 
