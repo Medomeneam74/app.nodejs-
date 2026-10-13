@@ -45,6 +45,7 @@ pipeline {
             steps {
                 script {
                     sh """
+                        docker rm -f "${APP_NAME}"-"main"-${BUILD_NUMBER} || true
                         docker run -p 5000:5000 --name "${APP_NAME}"-"main"-${BUILD_NUMBER} -d ${APP_NAME}:${BUILD_NUMBER}
                         docker ps
                     """
